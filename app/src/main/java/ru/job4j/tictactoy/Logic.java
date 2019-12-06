@@ -8,11 +8,15 @@ class Logic {
     };
     private static boolean isCurrentX;
 
+    public static int[] getArrayOfChoice() {
+        return arrayOfChoice;
+    }
+
     static void playGame() {
         arrayOfChoice[MainActivity.checkedButton] = currentMark() ? 1 : 2;
     }
 
-    private static boolean currentMark() {
+    static boolean currentMark() {
         if (!isCurrentX) {
             isCurrentX = true;
         } else {
@@ -32,24 +36,19 @@ class Logic {
     }
 
     static boolean isGameOver(int positionNumber) {
-
         int row = positionNumber - positionNumber % 3;
         int column = positionNumber % 3;
-
         if (arrayOfChoice[row] == arrayOfChoice[row + 1])
             if (arrayOfChoice[row] == arrayOfChoice[row + 2]) {
                 return true;
             }
-
         if (arrayOfChoice[column] == arrayOfChoice[column + 3])
             if (arrayOfChoice[column] == arrayOfChoice[column + 6]) {
                 return true;
             }
-
         if (positionNumber % 2 != 0) {
             return false;
         }
-
         if (positionNumber % 4 == 0) {
             if (arrayOfChoice[0] == arrayOfChoice[4] &&
                     arrayOfChoice[0] == arrayOfChoice[8]) {
@@ -63,22 +62,23 @@ class Logic {
                 arrayOfChoice[2] == arrayOfChoice[6];
     }
 
-    static String checkArray() {
-        StringBuilder s = new StringBuilder();
-        for (int i = 0; i < arrayOfChoice.length - 1; i++) {
-            s.append(arrayOfChoice[i]);
-        }
-        return s.toString();
-    }
-
     static void clear() {
         for (int i = 0; i < arrayOfChoice.length; i++) {
             arrayOfChoice[i] = 0;
         }
     }
 
-    static int randomNumberFrom0To9(int number) {
-        int first = 0;
-        return first + (int) (Math.random() * number);
+    static int randomNumberFrom0To9() {
+        int a = 0;
+        int b = 9;
+        return a + (int) (Math.random() * b);
+    }
+
+    static String checkArray() {
+        StringBuilder s = new StringBuilder();
+        for (int i = 0; i < arrayOfChoice.length - 1; i++) {
+            s.append(arrayOfChoice[i]);
+        }
+        return s.toString();
     }
 }
