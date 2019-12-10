@@ -1,84 +1,68 @@
 package ru.job4j.tictactoy;
 
 class Logic {
-    private static int[] arrayOfChoice = {
-            0, 0, 0,
-            0, 0, 0,
-            0, 0, 0
-    };
-    private static boolean isCurrentX;
+    Character[][] arrayOfChoices = new Character[3][3];
+    final Character MARK_X = 'X';
+    final Character MARK_O = 'O';
 
-    public static int[] getArrayOfChoice() {
-        return arrayOfChoice;
-    }
 
-    static void playGame() {
-        arrayOfChoice[MainActivity.checkedButton] = currentMark() ? 1 : 2;
-    }
-
-    static boolean currentMark() {
-        if (!isCurrentX) {
-            isCurrentX = true;
-        } else {
-            isCurrentX = false;
+    void mark(int x, int y, Character z) {
+        if (z.equals(MARK_X)) {
+            arrayOfChoices[x][y] = MARK_X;
+        } else if (z.equals(MARK_O)) {
+            arrayOfChoices[x][y] = MARK_O;
         }
-        return isCurrentX;
     }
 
-    static String draw() {
-        String s = "";
-        if (arrayOfChoice[MainActivity.checkedButton] == 1) {
-            s = "X";
-        } else if (arrayOfChoice[MainActivity.checkedButton] == 2) {
-            s = "O";
-        }
-        return s;
-    }
-
-    static boolean isGameOver(int positionNumber) {
-        int row = positionNumber - positionNumber % 3;
-        int column = positionNumber % 3;
-        if (arrayOfChoice[row] == arrayOfChoice[row + 1])
-            if (arrayOfChoice[row] == arrayOfChoice[row + 2]) {
-                return true;
-            }
-        if (arrayOfChoice[column] == arrayOfChoice[column + 3])
-            if (arrayOfChoice[column] == arrayOfChoice[column + 6]) {
-                return true;
-            }
-        if (positionNumber % 2 != 0) {
-            return false;
-        }
-        if (positionNumber % 4 == 0) {
-            if (arrayOfChoice[0] == arrayOfChoice[4] &&
-                    arrayOfChoice[0] == arrayOfChoice[8]) {
-                return true;
-            }
-            if (positionNumber != 4) {
-                return false;
+    boolean hasGaps() {
+        boolean hasGapsInArray = true;
+        for (int i = 0; i < arrayOfChoices.length; i++) {
+            for (int j = 0; j < arrayOfChoices[i].length; j++) {
+                if (arrayOfChoices[i][j] != null) {
+                    hasGapsInArray = false;
+                }
             }
         }
-        return arrayOfChoice[2] == arrayOfChoice[4] &&
-                arrayOfChoice[2] == arrayOfChoice[6];
+        return hasGapsInArray;
     }
 
-    static void clear() {
-        for (int i = 0; i < arrayOfChoice.length; i++) {
-            arrayOfChoice[i] = 0;
+    boolean isWin(int player) {
+        boolean win = false;
+        for (int i = 0; i < 3; i++) {
+            if (arrayOfChoices[i][0] != null && arrayOfChoices[i][0].equals(arrayOfChoices[i][1])
+                    && arrayOfChoices[i][1].equals(arrayOfChoices[i][2])) {
+                win = true;
+                break;
+            }
         }
-    }
-
-    static int randomNumberFrom0To9() {
-        int a = 0;
-        int b = 9;
-        return a + (int) (Math.random() * b);
-    }
-
-    static String checkArray() {
-        StringBuilder s = new StringBuilder();
-        for (int i = 0; i < arrayOfChoice.length - 1; i++) {
-            s.append(arrayOfChoice[i]);
+        if (win == false) {
+            for (int i = 0; i < 3; i++) {
+                if (arrayOfChoices[0][i] != null && arrayOfChoices[0][i].equals(arrayOfChoices[1][i])
+                        && arrayOfChoices[1][i].equals(arrayOfChoices[2][i])) {
+                    win = true;
+                    break;
+                }
+            }
         }
-        return s.toString();
+        if (win == false) {
+            for (int i = 0; i < arrayOfChoices.length; i++) {
+                for (int j = 0; j < arrayOfChoices[i].length; j++) {
+                    if (i == j) {
+                        win = true;
+                    }
+                }
+            }
+        }
+        if (win == false) {
+            for (int i = 0; i < arrayOfChoices.length; i++) {
+                for (int j = 0; j < arrayOfChoices[i].length; j++) {
+                    if (i == 2 - j) {
+                        win = true;
+                    }
+                }
+            }
+        }
+        return win;
     }
 }
+
