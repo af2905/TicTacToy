@@ -1,12 +1,21 @@
 package ru.job4j.tictactoy;
 
 class Logic {
-    Character[][] arrayOfChoices = new Character[3][3];
-    final Character MARK_X = 'X';
-    final Character MARK_O = 'O';
+    String[][] arrayOfChoices = new String[3][3];
+    final String MARK_X = "X";
+    final String MARK_O = "O";
+    private boolean isCurrentX;
 
+    boolean currentMark() {
+        if (!isCurrentX) {
+            isCurrentX = true;
+        } else {
+            isCurrentX = false;
+        }
+        return isCurrentX;
+    }
 
-    void mark(int x, int y, Character z) {
+    void mark(int x, int y, String z) {
         if (z.equals(MARK_X)) {
             arrayOfChoices[x][y] = MARK_X;
         } else if (z.equals(MARK_O)) {
@@ -63,6 +72,19 @@ class Logic {
             }
         }
         return win;
+    }
+    
+    public enum Mark {
+        X, O
+    }
+
+    String checkArray (){
+        String s = "";
+        for (int i = 0; i < arrayOfChoices.length; i++) {
+            for (int j = 0; j < arrayOfChoices[i].length; j++) {
+                s += arrayOfChoices[i][j];
+            }
+        }return s;
     }
 }
 
