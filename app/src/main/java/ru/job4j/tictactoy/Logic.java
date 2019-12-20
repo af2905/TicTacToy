@@ -1,12 +1,13 @@
 package ru.job4j.tictactoy;
 
-class Logic {
-    String[][] arrayOfChoices = new String[3][3];
-    final String MARK_X = "X";
-    final String MARK_O = "O";
-    private boolean isCurrentX;
+import java.util.Arrays;
+import java.util.Objects;
 
-    boolean currentMark() {
+class Logic {
+    private boolean isCurrentX;
+    private Mark[][] board = new Mark[3][3];
+
+    boolean currentMarkIsX() {
         if (!isCurrentX) {
             isCurrentX = true;
         } else {
@@ -15,57 +16,55 @@ class Logic {
         return isCurrentX;
     }
 
-    void mark(int x, int y, String z) {
-        if (z.equals(MARK_X)) {
-            arrayOfChoices[x][y] = MARK_X;
-        } else if (z.equals(MARK_O)) {
-            arrayOfChoices[x][y] = MARK_O;
-        }
+    public Mark[][] getBoard() {
+        return board;
+    }
+
+    public void setBoard(Mark[][] board) {
+        this.board = board;
+    }
+
+    void mark(int x, int y, Mark mark) {
+        board[x][y] = mark;
     }
 
     boolean hasGaps() {
-        boolean hasGapsInArray = true;
-        for (int i = 0; i < arrayOfChoices.length; i++) {
-            for (int j = 0; j < arrayOfChoices[i].length; j++) {
-                if (arrayOfChoices[i][j] != null) {
-                    hasGapsInArray = false;
-                }
-            }
-        }
-        return hasGapsInArray;
+        return Arrays.stream(board).flatMap(Arrays::stream).anyMatch(Objects::isNull);
     }
 
-    boolean isWin(int player) {
+    boolean isWin(Mark mark) {
         boolean win = false;
         for (int i = 0; i < 3; i++) {
-            if (arrayOfChoices[i][0] != null && arrayOfChoices[i][0].equals(arrayOfChoices[i][1])
-                    && arrayOfChoices[i][1].equals(arrayOfChoices[i][2])) {
+            if (board[i][0] != null && board[i][0].equals(board[i][1])
+                    && board[i][1].equals(board[i][2]) && board[i][0].equals(mark)) {
                 win = true;
                 break;
             }
         }
         if (win == false) {
             for (int i = 0; i < 3; i++) {
-                if (arrayOfChoices[0][i] != null && arrayOfChoices[0][i].equals(arrayOfChoices[1][i])
-                        && arrayOfChoices[1][i].equals(arrayOfChoices[2][i])) {
+                if (board[0][i] != null && board[0][i].equals(board[1][i])
+                        && board[1][i].equals(board[2][i]) && board[0][i].equals(mark)) {
                     win = true;
                     break;
                 }
             }
         }
         if (win == false) {
-            for (int i = 0; i < arrayOfChoices.length; i++) {
-                for (int j = 0; j < arrayOfChoices[i].length; j++) {
-                    if (i == j) {
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[i].length; j++) {
+                    if (board[0][0] != null && board[0][0] == board[1][1]
+                            && board[0][0] == board[2][2] && board[0][0].equals(mark)) {
                         win = true;
                     }
                 }
             }
         }
         if (win == false) {
-            for (int i = 0; i < arrayOfChoices.length; i++) {
-                for (int j = 0; j < arrayOfChoices[i].length; j++) {
-                    if (i == 2 - j) {
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[i].length; j++) {
+                    if (board[0][2] != null && board[0][2] == board[1][1]
+                            && board[0][2] == board[2][0] && board[0][2].equals(mark)) {
                         win = true;
                     }
                 }
@@ -73,18 +72,31 @@ class Logic {
         }
         return win;
     }
-    
-    public enum Mark {
-        X, O
+
+    enum Mark {
+        X, O,
     }
 
-    String checkArray (){
-        String s = "";
-        for (int i = 0; i < arrayOfChoices.length; i++) {
-            for (int j = 0; j < arrayOfChoices[i].length; j++) {
-                s += arrayOfChoices[i][j];
+    void clear (){
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                board[i][j] = null;
             }
-        }return s;
+        }
     }
-}
+
+    int randomNumberFrom0To8() {
+        return (int) (Math.random() * 9);
+    }
+
+    String checkArray() {
+        String s = "";
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                s += board[i][j];
+            }
+        }
+        return s;
+    }
+  }
 

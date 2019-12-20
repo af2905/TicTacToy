@@ -3,6 +3,7 @@ package ru.job4j.tictactoy;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Toast;
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.util.Pair;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +23,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     int[] cells = {R.id.btn0, R.id.btn1, R.id.btn2,
             R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6,
             R.id.btn7, R.id.btn8};
-    private static String LOG = "Log";
+    private static String TAG = "Log";
     private Map<Integer, Pair<Integer, Integer>> marks = new HashMap<>();
 
     {
@@ -47,48 +49,103 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (switchEnemy != null) {
             switchEnemy.setOnCheckedChangeListener(checked);
         }
+
+        if (savedInstanceState != null) {
+            ai = savedInstanceState.getBoolean("ai");
+            cells = savedInstanceState.getIntArray("cells");
+            marks = (Map<Integer, Pair<Integer, Integer>>) savedInstanceState
+                    .getSerializable("marks");
+
+            for (int i = 0; i < cells.length; i++) {
+                Button button = findViewById(cells[i]);
+                String text = savedInstanceState.getString("buttonsText");
+                button.setText(text);
+            }
+        }
     }
 
-    CompoundButton.OnCheckedChangeListener checked = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if (isChecked) {
-                ai = false;
-                Toast.makeText(getApplicationContext(), "Your opponent is a human",
-                        Toast.LENGTH_SHORT).show();
-            } else {
-                ai = true;
-                Toast.makeText(getApplicationContext(), "Your opponent is a computer",
-                        Toast.LENGTH_SHORT).show();
-            }
+    CompoundButton.OnCheckedChangeListener checked = (buttonView, isChecked) -> {
+        if (isChecked) {
+            ai = false;
+            Toast.makeText(getApplicationContext(), "Your opponent is a human",
+                    Toast.LENGTH_SHORT).show();
+        } else {
+            ai = true;
+            Toast.makeText(getApplicationContext(), "Your opponent is a computer",
+                    Toast.LENGTH_SHORT).show();
         }
     };
 
     @Override
     public void onClick(View v) {
-        Button button = findViewById(v.getId());
+        Button button;
+        if (ai) {
+            button = randomChoiceFromAI();
+        } else button = findViewById(v.getId());
+
         for (Map.Entry<Integer, Pair<Integer, Integer>> entry : marks.entrySet()) {
+            Logic.Mark currentMark;
             if (entry.getKey() == v.getId()) {
-                Log.d(LOG, "entry.getKey() = " + entry.getKey() + " v.getId() = " + v.getId());
-                String tempForCurrentMark = "";
-                if (logic.currentMark()) {
-                    tempForCurrentMark = logic.MARK_X;
-                    button.setText(logic.MARK_X);
+                if (logic.currentMarkIsX()) {
+                    currentMark = Logic.Mark.X;
+                    button.setText("X");
                 } else {
-                    tempForCurrentMark = logic.MARK_O;
-                    button.setText(logic.MARK_O);
+                    currentMark = Logic.Mark.O;
+                    button.setText("O");
                 }
                 button.setEnabled(false);
-                Log.d(LOG, "button.getText() = " + button.getText());
-                logic.mark(entry.getValue().first, entry.getValue().second, tempForCurrentMark);
-                Log.d(LOG, "arrayOfChoices = " + logic.checkArray());
+                Log.d(TAG, "button.getText() = " + button.getText());
+                logic.mark(entry.getValue().first, entry.getValue().second, currentMark);
+                Log.d(TAG, "checkArray(): " + logic.checkArray() + " currentMark: " + currentMark);
+                if (logic.isWin(currentMark)) {
+                    Toast.makeText(getApplicationContext(),
+                            "Congratulations! Winner is " + currentMark, Toast.LENGTH_SHORT).show();
+                    logic.clear();
+                    Log.d(TAG, "checkArray(): " + logic.checkArray());
+                    clearButtonsText();
+                }
+                if (!logic.hasGaps()) {
+                    logic.clear();
+                    clearButtonsText();
+                    Toast.makeText(getApplicationContext(),
+                            "Oh! Friendship won!", Toast.LENGTH_SHORT).show();
+                }
             }
-
         }
+    }
+
+    public void clearButtonsText() {
+        for (int i = 0; i < cells.length; i++) {
+            Button currentButton = findViewById(cells[i]);
+            currentButton.startAnimation(AnimationUtils.loadAnimation(this, R.anim.alpha));
+            currentButton.setText("");
+            currentButton.setEnabled(true);
+        }
+    }
+
+    public Button randomChoiceFromAI() {
+        return findViewById(cells[logic.randomNumberFrom0To8()]);
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putBoolean("ai", ai);
+        outState.putIntArray("cells", cells);
+        outState.putSerializable("marks", (Serializable) marks);
+
+        for (int i = 0; i < cells.length; i++) {
+            Button buttonText = findViewById(cells[i]);
+            outState.putString("buttonText", buttonText.getText().toString());
+        }
+        super.onSaveInstanceState(outState);
+    }
 }
+
+
+
+
+
 
 
 
