@@ -41,7 +41,7 @@ class Logic {
                 break;
             }
         }
-        if (win == false) {
+        if (!win) {
             for (int i = 0; i < 3; i++) {
                 if (board[0][i] != null && board[0][i].equals(board[1][i])
                         && board[1][i].equals(board[2][i]) && board[0][i].equals(mark)) {
@@ -50,7 +50,7 @@ class Logic {
                 }
             }
         }
-        if (win == false) {
+        if (!win) {
             for (int i = 0; i < board.length; i++) {
                 for (int j = 0; j < board[i].length; j++) {
                     if (board[0][0] != null && board[0][0] == board[1][1]
@@ -60,7 +60,7 @@ class Logic {
                 }
             }
         }
-        if (win == false) {
+        if (!win) {
             for (int i = 0; i < board.length; i++) {
                 for (int j = 0; j < board[i].length; j++) {
                     if (board[0][2] != null && board[0][2] == board[1][1]
@@ -77,7 +77,7 @@ class Logic {
         X, O,
     }
 
-    void clear (){
+    void clear() {
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[i].length; j++) {
                 board[i][j] = null;
@@ -98,5 +98,4 @@ class Logic {
         }
         return s;
     }
-  }
-
+}

@@ -12,19 +12,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.util.Pair;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
     SwitchCompat switchEnemy;
-    boolean ai = true;
+    boolean ai = false;
     Logic logic = new Logic();
     int[] cells = {R.id.btn0, R.id.btn1, R.id.btn2,
             R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6,
             R.id.btn7, R.id.btn8};
-    private static String TAG = "Log";
+    private static final String TAG = "Log";
     private Map<Integer, Pair<Integer, Integer>> marks = new HashMap<>();
+    private static final String BUTTON_TEXT = "buttonText";
+    private static final String BUTTON_ENABLED = "buttonEnabled";
+    private static final String AI = "ai";
 
     {
         marks.put(R.id.btn0, new Pair<>(0, 0));
@@ -42,77 +44,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        for (int id : cells) {
-            findViewById(id).setOnClickListener(this);
-        }
         switchEnemy = findViewById(R.id.switchEnemy);
         if (switchEnemy != null) {
             switchEnemy.setOnCheckedChangeListener(checked);
         }
 
         if (savedInstanceState != null) {
-            ai = savedInstanceState.getBoolean("ai");
-            cells = savedInstanceState.getIntArray("cells");
-            marks = (Map<Integer, Pair<Integer, Integer>>) savedInstanceState
-                    .getSerializable("marks");
+            ai = savedInstanceState.getBoolean(AI);
+            String[] buttonsText = savedInstanceState.getStringArray(BUTTON_TEXT);
+            boolean[] buttonsEnabled = savedInstanceState.getBooleanArray(BUTTON_ENABLED);
+
 
             for (int i = 0; i < cells.length; i++) {
                 Button button = findViewById(cells[i]);
-                String text = savedInstanceState.getString("buttonsText");
-                button.setText(text);
+                button.setText(buttonsText[i]);
+
+                button.setEnabled(buttonsEnabled[i]);
             }
+
         }
     }
 
     CompoundButton.OnCheckedChangeListener checked = (buttonView, isChecked) -> {
         if (isChecked) {
-            ai = false;
+            ai = true;
             Toast.makeText(getApplicationContext(), "Your opponent is a human",
                     Toast.LENGTH_SHORT).show();
         } else {
-            ai = true;
+            ai = false;
             Toast.makeText(getApplicationContext(), "Your opponent is a computer",
                     Toast.LENGTH_SHORT).show();
         }
     };
-
-    @Override
-    public void onClick(View v) {
-        Button button;
-        if (ai) {
-            button = randomChoiceFromAI();
-        } else button = findViewById(v.getId());
-
-        for (Map.Entry<Integer, Pair<Integer, Integer>> entry : marks.entrySet()) {
-            Logic.Mark currentMark;
-            if (entry.getKey() == v.getId()) {
-                if (logic.currentMarkIsX()) {
-                    currentMark = Logic.Mark.X;
-                    button.setText("X");
-                } else {
-                    currentMark = Logic.Mark.O;
-                    button.setText("O");
-                }
-                button.setEnabled(false);
-                Log.d(TAG, "button.getText() = " + button.getText());
-                logic.mark(entry.getValue().first, entry.getValue().second, currentMark);
-                Log.d(TAG, "checkArray(): " + logic.checkArray() + " currentMark: " + currentMark);
-                if (logic.isWin(currentMark)) {
-                    Toast.makeText(getApplicationContext(),
-                            "Congratulations! Winner is " + currentMark, Toast.LENGTH_SHORT).show();
-                    logic.clear();
-                    Log.d(TAG, "checkArray(): " + logic.checkArray());
-                    clearButtonsText();
-                }
-                if (!logic.hasGaps()) {
-                    logic.clear();
-                    clearButtonsText();
-                    Toast.makeText(getApplicationContext(),
-                            "Oh! Friendship won!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
 
     public void clearButtonsText() {
         for (int i = 0; i < cells.length; i++) {
@@ -128,16 +91,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    public void answer(View v) {
+        Button button;
+        Logic.Mark currentMark;
+        if (ai) {
+            button = randomChoiceFromAI();
+        } else button = findViewById(v.getId());
+        if (logic.currentMarkIsX()) {
+            currentMark = Logic.Mark.X;
+            button.setText("X");
+        } else {
+            currentMark = Logic.Mark.O;
+            button.setText("O");
+        }
+        button.setEnabled(false);
+        logic.mark(marks.get(v.getId()).first, marks.get(v.getId()).second, currentMark);
+        if (logic.isWin(currentMark)) {
+            Toast.makeText(getApplicationContext(),
+                    "Congratulations! Winner is " + currentMark, Toast.LENGTH_SHORT).show();
+            logic.clear();
+            Log.d(TAG, "checkArray(): " + logic.checkArray());
+            clearButtonsText();
+        }
+        if (!logic.hasGaps()) {
+            logic.clear();
+            clearButtonsText();
+            Toast.makeText(getApplicationContext(),
+                    "Oh! Friendship won!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean("ai", ai);
-        outState.putIntArray("cells", cells);
-        outState.putSerializable("marks", (Serializable) marks);
+        outState.putBoolean(AI, ai);
+        String[] buttonsText = new String[9];
+        boolean[] buttonEnabled = new boolean[9];
 
         for (int i = 0; i < cells.length; i++) {
-            Button buttonText = findViewById(cells[i]);
-            outState.putString("buttonText", buttonText.getText().toString());
+            Button button = findViewById(cells[i]);
+            buttonsText[i] = button.getText().toString();
+
+            if (button.isEnabled()) {
+                buttonEnabled[i] = button.isEnabled();
+            }
         }
+        outState.putStringArray(BUTTON_TEXT, buttonsText);
+        outState.putBooleanArray(BUTTON_ENABLED, buttonEnabled);
         super.onSaveInstanceState(outState);
     }
 }
