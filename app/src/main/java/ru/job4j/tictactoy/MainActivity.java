@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     SwitchCompat switchEnemy;
-    boolean ai = false;
+    boolean ai;
     Logic logic = new Logic();
     int[] cells = {R.id.btn0, R.id.btn1, R.id.btn2,
             R.id.btn3, R.id.btn4, R.id.btn5, R.id.btn6,
@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String BUTTON_TEXT = "buttonText";
     private static final String BUTTON_ENABLED = "buttonEnabled";
     private static final String AI = "ai";
+    private static final String BOARD = "board";
 
     {
         marks.put(R.id.btn0, new Pair<>(0, 0));
@@ -48,31 +49,28 @@ public class MainActivity extends AppCompatActivity {
         if (switchEnemy != null) {
             switchEnemy.setOnCheckedChangeListener(checked);
         }
-
         if (savedInstanceState != null) {
             ai = savedInstanceState.getBoolean(AI);
             String[] buttonsText = savedInstanceState.getStringArray(BUTTON_TEXT);
             boolean[] buttonsEnabled = savedInstanceState.getBooleanArray(BUTTON_ENABLED);
-
-
             for (int i = 0; i < cells.length; i++) {
                 Button button = findViewById(cells[i]);
                 button.setText(buttonsText[i]);
-
                 button.setEnabled(buttonsEnabled[i]);
             }
-
+            Logic.Mark[][] board = (Logic.Mark[][]) savedInstanceState.getSerializable(BOARD);
+            logic.setBoard(board);
         }
     }
 
     CompoundButton.OnCheckedChangeListener checked = (buttonView, isChecked) -> {
         if (isChecked) {
             ai = true;
-            Toast.makeText(getApplicationContext(), "Your opponent is a human",
+            Toast.makeText(getApplicationContext(), "Your opponent is a computer",
                     Toast.LENGTH_SHORT).show();
         } else {
             ai = false;
-            Toast.makeText(getApplicationContext(), "Your opponent is a computer",
+            Toast.makeText(getApplicationContext(), "Your opponent is a human",
                     Toast.LENGTH_SHORT).show();
         }
     };
@@ -81,22 +79,24 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < cells.length; i++) {
             Button currentButton = findViewById(cells[i]);
             currentButton.startAnimation(AnimationUtils.loadAnimation(this, R.anim.alpha));
-            currentButton.setText("");
+            currentButton.setText(" ");
             currentButton.setEnabled(true);
         }
-    }
-
-    public Button randomChoiceFromAI() {
-        return findViewById(cells[logic.randomNumberFrom0To8()]);
-
     }
 
     public void answer(View v) {
         Button button;
         Logic.Mark currentMark;
-        if (ai) {
-            button = randomChoiceFromAI();
-        } else button = findViewById(v.getId());
+        int id = v.getId();
+        if (!ai) {
+           button = findViewById(id);
+
+        } else {
+            id = cells[randomChoiceFromAI()];
+            button = findViewById(id);
+
+        }
+        Log.d(TAG, "id: " + id);
         if (logic.currentMarkIsX()) {
             currentMark = Logic.Mark.X;
             button.setText("X");
@@ -105,19 +105,23 @@ public class MainActivity extends AppCompatActivity {
             button.setText("O");
         }
         button.setEnabled(false);
-        logic.mark(marks.get(v.getId()).first, marks.get(v.getId()).second, currentMark);
+        logic.mark(marks.get(id).first, marks.get(id).second, currentMark);
+        Log.d(TAG, "button: " + button.getText().toString());
+        Log.d(TAG, "checkArray(): " + logic.checkArray());
         if (logic.isWin(currentMark)) {
             Toast.makeText(getApplicationContext(),
                     "Congratulations! Winner is " + currentMark, Toast.LENGTH_SHORT).show();
             logic.clear();
             Log.d(TAG, "checkArray(): " + logic.checkArray());
             clearButtonsText();
+            resetCheck();
         }
         if (!logic.hasGaps()) {
             logic.clear();
             clearButtonsText();
             Toast.makeText(getApplicationContext(),
                     "Oh! Friendship won!", Toast.LENGTH_SHORT).show();
+            resetCheck();
         }
     }
 
@@ -126,18 +130,39 @@ public class MainActivity extends AppCompatActivity {
         outState.putBoolean(AI, ai);
         String[] buttonsText = new String[9];
         boolean[] buttonEnabled = new boolean[9];
-
         for (int i = 0; i < cells.length; i++) {
             Button button = findViewById(cells[i]);
             buttonsText[i] = button.getText().toString();
-
             if (button.isEnabled()) {
                 buttonEnabled[i] = button.isEnabled();
             }
         }
+        Logic.Mark[][] board = new Logic.Mark[3][3];
+        for (int i = 0; i < logic.getBoard().length; i++) {
+            for (int j = 0; j < logic.getBoard()[i].length; j++) {
+                board[i][j] = logic.getBoard()[i][j];
+            }
+        }
+        outState.putSerializable(BOARD, board);
         outState.putStringArray(BUTTON_TEXT, buttonsText);
         outState.putBooleanArray(BUTTON_ENABLED, buttonEnabled);
         super.onSaveInstanceState(outState);
+    }
+
+    public int randomChoiceFromAI() {
+        int number;
+        for (; ; ) {
+            number = logic.randomNumberFrom0To8();
+            Button button = findViewById(cells[number]);
+            if (button.getText().equals(" ")) {
+                break;
+            }
+        }
+        return number;
+    }
+
+    void resetCheck (){
+        switchEnemy.setChecked(false);
     }
 }
 
